@@ -9,6 +9,8 @@ from django_redis import get_redis_connection
 # from django_redis.serializers import json
 import logging
 
+from goods.models import SKU
+
 logger = logging.getLogger('django')
 from meiduo_mall.utils.response_code import RETCODE
 from meiduo_mall.utils.view import LoginRequiredMixin
@@ -16,8 +18,6 @@ from meiduo_mall.utils.view import LoginRequiredJsonMixin
 from .models import Users, Address
 from django import http
 from django.contrib.auth import logout
-
-
 
 import re
 
@@ -98,12 +98,10 @@ class RegisterView(View):
 
         # 在响应对象中设置用户名信息.
         # 将用户名写入到 cookie，有效期 15 天
-        response.set_cookie('username', user.username, max_age = 3600 * 24 * 15)
+        response.set_cookie('username', user.username, max_age=3600 * 24 * 15)
 
         # 返回响应结果
         return response
-
-
 
 
 # username
@@ -238,10 +236,10 @@ class UserInfoView(LoginRequiredMixin, View):
         # 从mysql中获取数据
         # 拼接
         context = {
-            'username':request.user.username,
-            'mobile':request.user.mobile,
-            'email':request.user.email,
-            'email_active':request.user.email_active
+            'username': request.user.username,
+            'mobile': request.user.mobile,
+            'email': request.user.email,
+            'email_active': request.user.email_active
         }
         # 返回
         return render(request, 'user_center_info.html', context)
@@ -272,7 +270,7 @@ class EmailView(LoginRequiredMixin, View):
             request.user.email = email
             request.user.save()
         except Exception as e:
-            return http.JsonResponse({'code':RETCODE.DBERR, 'errmsg':'数据库保存出错'})
+            return http.JsonResponse({'code': RETCODE.DBERR, 'errmsg': '数据库保存出错'})
 
         # 4.返回
         return http.JsonResponse({'code': RETCODE.OK,
@@ -281,33 +279,33 @@ class EmailView(LoginRequiredMixin, View):
 
 class VerifyEmailView(View):
 
-        def get(self, request):
-            '''
-            验证用户邮箱是否为真
-            :param request:
-            :return:
-            '''
-            # 1.接收参数(token)
-            token = request.GET.get('token')
+    def get(self, request):
+        '''
+        验证用户邮箱是否为真
+        :param request:
+        :return:
+        '''
+        # 1.接收参数(token)
+        token = request.GET.get('token')
 
-            # 2.检验
-            if not token:
-                return http.HttpResponseForbidden('缺少必传参数')
+        # 2.检验
+        if not token:
+            return http.HttpResponseForbidden('缺少必传参数')
 
-            # 3.解密(token ===> user_id, email ===> user)
-            user = Users.check_verify_email_url(token)
-            if user is None:
-                return http.HttpResponseForbidden('token无效')
+        # 3.解密(token ===> user_id, email ===> user)
+        user = Users.check_verify_email_url(token)
+        if user is None:
+            return http.HttpResponseForbidden('token无效')
 
-            # 4.更改数据库(email_active)
-            try:
-                user.email_active = True
-                user.save()
-            except Exception as e:
-                return http.HttpResponseForbidden('激活失败')
+        # 4.更改数据库(email_active)
+        try:
+            user.email_active = True
+            user.save()
+        except Exception as e:
+            return http.HttpResponseForbidden('激活失败')
 
-            # 5.返回(重定向到用户中心)
-            return redirect(reverse('users:info'))
+        # 5.返回(重定向到用户中心)
+        return redirect(reverse('users:info'))
 
 
 class AddressView(LoginRequiredMixin, View):
@@ -327,16 +325,16 @@ class AddressView(LoginRequiredMixin, View):
         for address in addresses:
             # 3.这里格式, 把地址信息整理为dict
             address_dict = {
-                    "id": address.id,
-                    "title": address.title,
-                    "receiver": address.receiver,
-                    "province": address.province.name,
-                    "city": address.city.name,
-                    "district": address.district.name,
-                    "place": address.place,
-                    "mobile": address.mobile,
-                    "tel": address.tel,
-                    "email": address.email
+                "id": address.id,
+                "title": address.title,
+                "receiver": address.receiver,
+                "province": address.province.name,
+                "city": address.city.name,
+                "district": address.district.name,
+                "place": address.place,
+                "mobile": address.mobile,
+                "tel": address.tel,
+                "email": address.email
             }
 
             # 4.创建一个list, 把地址信息添加到list中, 其中默认地址第一个
@@ -348,8 +346,8 @@ class AddressView(LoginRequiredMixin, View):
 
         # 5.拼接参数
         context = {
-                'default_address_id': request.user.default_address_id,
-                'addresses': address_model_list
+            'default_address_id': request.user.default_address_id,
+            'addresses': address_model_list
         }
 
         # 6.返回
@@ -430,22 +428,23 @@ class CreateAddressView(LoginRequiredJsonMixin, View):
 
         # 6.组织参数
         address_dict = {
-                "id": address.id,
-                "title": address.title,
-                "receiver": address.receiver,
-                "province": address.province.name,
-                "city": address.city.name,
-                "district": address.district.name,
-                "place": address.place,
-                "mobile": address.mobile,
-                "tel": address.tel,
-                "email": address.email
+            "id": address.id,
+            "title": address.title,
+            "receiver": address.receiver,
+            "province": address.province.name,
+            "city": address.city.name,
+            "district": address.district.name,
+            "place": address.place,
+            "mobile": address.mobile,
+            "tel": address.tel,
+            "email": address.email
         }
 
         # 7.返回json
         return http.JsonResponse({'code': RETCODE.OK,
                                   'errmsg': 'ok',
                                   'address': address_dict})
+
 
 class UpdateDestroyAddressView(LoginRequiredJsonMixin, View):
 
@@ -506,16 +505,16 @@ class UpdateDestroyAddressView(LoginRequiredJsonMixin, View):
         address = Address.objects.get(id=address_id)
         # 6.组织参数
         address_dict = {
-                "id": address.id,
-                "title": address.title,
-                "receiver": address.receiver,
-                "province": address.province.name,
-                "city": address.city.name,
-                "district": address.district.name,
-                "place": address.place,
-                "mobile": address.mobile,
-                "tel": address.tel,
-                "email": address.email
+            "id": address.id,
+            "title": address.title,
+            "receiver": address.receiver,
+            "province": address.province.name,
+            "city": address.city.name,
+            "district": address.district.name,
+            "place": address.place,
+            "mobile": address.mobile,
+            "tel": address.tel,
+            "email": address.email
         }
 
         # 7.返回json
@@ -664,3 +663,55 @@ class ChangePasswordView(LoginRequiredMixin, View):
 
         # 5.返回(重定向到登录页面)
         return response
+
+
+class UserBrowseHistory(LoginRequiredMixin, View):
+    """用户浏览记录"""
+
+    def post(self, request):
+        """保存用户浏览记录"""
+        # 接收参数
+        json_dict = json.loads(request.body.decode())
+        sku_id = json_dict.get('sku_id')
+
+        # 校验参数:
+        try:
+            SKU.objects.get(id=sku_id)
+        except SKU.DoesNotExist:
+            return http.HttpResponseForbidden('sku不存在')
+
+        # 保存用户浏览数据
+        redis_conn = get_redis_connection('history')
+        pl = redis_conn.pipeline()
+        user_id = request.user.id
+
+        # 先去重: 这里给 0 代表去除所有的 sku_id
+        pl.lrem('history_%s' % user_id, 0, sku_id)
+        # 再存储
+        pl.lpush('history_%s' % user_id, sku_id)
+        # 最后截取: 界面有限, 只保留 5 个
+        pl.ltrim('history_%s' % user_id, 0, 4)
+        # 执行管道
+        pl.execute()
+
+        # 响应结果
+        return http.JsonResponse({'code': RETCODE.OK, 'errmsg': 'OK'})
+
+    def get(self, request):
+        """获取用户浏览记录"""
+        # 获取Redis存储的sku_id列表信息
+        redis_conn = get_redis_connection('history')
+        sku_ids = redis_conn.lrange('history_%s' % request.user.id, 0, -1)
+
+        # 根据sku_ids列表数据，查询出商品sku信息
+        skus = []
+        for sku_id in sku_ids:
+            sku = SKU.objects.get(id=sku_id)
+            skus.append({
+                'id': sku.id,
+                'name': sku.name,
+                'default_image_url': sku.default_image_url,
+                'price': sku.price
+            })
+
+        return http.JsonResponse({'code': RETCODE.OK, 'errmsg': 'OK', 'skus': skus})
